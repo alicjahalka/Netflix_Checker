@@ -1,0 +1,63 @@
+import os
+print(os.getcwd())
+import pandas as pd
+Movie_TV_Shows_cleaning_data = pd.read_csv(r'C:\Users\Alicja\PycharmProjects\Movie_TV_Shows_Explorer\data\processed\netflix_clean.csv')
+Movie_TV_Shows_cleaning_data['date_added']=pd.to_datetime(Movie_TV_Shows_cleaning_data['date_added'])
+print(Movie_TV_Shows_cleaning_data.head())
+
+movies_genres = Movie_TV_Shows_cleaning_data.copy()
+movies_genres['listed_in'] = movies_genres['listed_in'].str.split(',')
+print(movies_genres.head())
+movies_genres= movies_genres.explode('listed_in')
+movies_genres.info()
+print(movies_genres.head(50))
+movies_genres['listed_in'] = movies_genres['listed_in'].str.strip()
+print('\n counting genres')
+count_genre = movies_genres.groupby('listed_in').agg({'show_id':'count'})
+count_genre = count_genre.rename(columns={'show_id':'number_of_titles'})
+count_genre = count_genre.reset_index()
+count_genre= count_genre.sort_values(by=['number_of_titles'], ascending=False)
+print(count_genre.head(10))
+count_genre.to_csv(r'output files\the_most_popular_genres.csv', index=False)
+
+print('\nmovies_or_TVShows')
+movies_or_TVShows = Movie_TV_Shows_cleaning_data.copy()
+movies_or_TVShows = movies_or_TVShows.groupby('type').agg({'show_id':'count'})
+movies_or_TVShows = movies_or_TVShows.reset_index()
+movies_or_TVShows = movies_or_TVShows.rename(columns={'show_id':'number_of_types'})
+print(movies_or_TVShows.head())
+movies_or_TVShows.to_csv(r'output files\movies_or_tvshows.csv', index=False)
+
+
+print('\ntitles_by_country')
+titles_by_country = Movie_TV_Shows_cleaning_data.copy()
+titles_by_country['country'] = titles_by_country['country'].str.split(',')
+titles_by_country = titles_by_country.explode('country')
+titles_by_country['country'] = titles_by_country['country'].str.strip()
+titles_by_country = titles_by_country.groupby('country').agg({'show_id':'count'})
+titles_by_country = titles_by_country.reset_index()
+titles_by_country = titles_by_country.rename(columns={'show_id':'number_of_titles_by_country'})
+titles_by_country = titles_by_country.sort_values(by=['number_of_titles_by_country'], ascending=False)
+print(titles_by_country.head())
+titles_by_country.to_csv(r'output files\titles_by_country.csv', index=False)
+
+
+print('\nreleased_by_year')
+released_by_year = Movie_TV_Shows_cleaning_data.copy()
+released_by_year = released_by_year.groupby('release_year').agg({'show_id':'count'})
+released_by_year = released_by_year.reset_index()
+released_by_year = released_by_year.rename(columns={'show_id':'number_of_titles_by_year'})
+released_by_year = released_by_year.sort_values(by=['release_year'], ascending=True)
+print(released_by_year)
+released_by_year.to_csv(r'output files\released_by_year.csv', index=False)
+
+
+print('\nmovies_duration')
+movies_duration = Movie_TV_Shows_cleaning_data.copy()
+movies_duration = movies_duration[movies_duration['type'] == 'Movie']
+movies_duration['duration'] = movies_duration['duration'].str.replace(' min', '')
+movies_duration['duration'] = movies_duration['duration'].astype('Int64')
+movies_duration = movies_duration.sort_values(by=['duration'], ascending=False)
+movies_duration = movies_duration.rename(columns={'duration':'number_of_minutes'})
+print(movies_duration.head(10))
+movies_duration.to_csv(r'output files\movies_duration.csv', index=False)
